@@ -239,7 +239,7 @@ onMounted(async () => {
                         @click="openAddProductModal"
                         class="flex flex-col items-center justify-center h-full cursor-pointer border-2 border-dashed border-white/30 hover:border-red-500 text-white rounded-xl"
                     >
-                        <div class="text-5xl mb-2">＋</div>
+                        <i class="text-2xl mb-2 pi pi-plus"></i>
                         <p class="text-sm sm:text-base font-semibold">
                             Add Product
                         </p>
