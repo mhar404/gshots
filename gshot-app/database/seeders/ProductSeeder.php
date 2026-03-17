@@ -18,6 +18,31 @@ class ProductSeeder extends Seeder
             'description' => 'Delicious cheese burger',
             'price' => 10.99,
             'image' => 'images/Burger.jpg',
+            'category' => 'burgers',
+        ]);
+
+        Product::create([
+            'name' => 'Pepperoni Pizza',
+            'description' => 'Tasty pepperoni pizza',
+            'price' => 12.99,
+            'image' => 'images/pizza.jpg',
+            'category' => 'pizzas',
+        ]);
+
+        Product::create([
+            'name' => 'Chicken Wings Rice Meal',
+            'description' => 'Delicious chicken rice meal',
+            'price' => 8.99,
+            'image' => 'images/chicken-wings.jpg',
+            'category' => 'ricemeals',
+        ]);
+
+        Product::create([
+            'name' => 'Milktea',
+            'description' => 'Refreshing milktea drink',
+            'price' => 1.99,
+            'image' => 'images/milktea.jpg',
+            'category' => 'drinks',
         ]);
     }
 }

@@ -7,6 +7,9 @@ export const useAuthStore = defineStore("auth", {
         errors: {},
         loading: false,
     }),
+    getters: {
+        isAdmin: (state) => state.user?.role === "admin",
+    },
 
     actions: {
         async authenticate(apiRoute, formData) {

@@ -126,6 +126,12 @@ onUnmounted(() => {
                 >
                     CONTACT
                 </RouterLink>
+                <RouterLink
+                    :to="{ name: 'test' }"
+                    class="hover:text-red-600 transition"
+                >
+                    TEST
+                </RouterLink>
             </div>
 
             <!-- Right Actions -->

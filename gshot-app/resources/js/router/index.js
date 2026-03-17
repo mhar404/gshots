@@ -23,6 +23,11 @@ const router = createRouter({
             name: "contact",
             component: () => import("@/pages/Contact.vue"),
         },
+        {
+            path: "/test",
+            name: "test",
+            component: () => import("@/pages/Test.vue"),
+        },
     ],
     scrollBehavior(to, from, savedPosition) {
         // If navigating back/forward, use saved scroll position

@@ -1,7 +1,6 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import TopNav from "../components/TopNav.vue";
-import axios from "axios";
 
 const form = ref({
     name: "",
@@ -15,23 +14,6 @@ const submitForm = () => {
     form.value.email = "";
     form.value.message = "";
 };
-
-const products = ref([]);
-
-// Fetch products from Laravel API
-const fetchProducts = async () => {
-    try {
-        const res = await axios.get("/api/products"); // matches your Route::get
-        products.value = res.data;
-    } catch (err) {
-        console.error("Error fetching products:", err);
-    }
-};
-
-// Fetch on component mount
-onMounted(() => {
-    fetchProducts();
-});
 </script>
 
 <template>
@@ -161,24 +143,4 @@ onMounted(() => {
             </div>
         </div>
     </section>
-
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Products</h1>
-        <div class="grid grid-cols-3 gap-6">
-            <div
-                v-for="product in products"
-                :key="product.id"
-                class="border rounded-lg p-4 shadow hover:shadow-lg transition"
-            >
-                <img
-                    :src="product.image"
-                    :alt="product.name"
-                    class="w-full h-48 object-cover rounded"
-                />
-                <h2 class="mt-2 font-semibold text-lg">{{ product.name }}</h2>
-                <p class="text-gray-700">${{ product.price }}</p>
-                <p class="text-gray-500 text-sm">{{ product.description }}</p>
-            </div>
-        </div>
-    </div>
 </template>

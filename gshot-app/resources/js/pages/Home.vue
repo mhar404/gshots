@@ -11,7 +11,7 @@ const categories = [
     { name: "Drinks", image: "/assets/gshot-drinks.png" },
     { name: "Burgers", image: "/assets/gshot-burgers.png" },
     { name: "Pizzas", image: "/assets/gshot-pizzas.png" },
-    { name: "Rice Meals", image: "/assets/gshot-rice.png" },
+    { name: "RiceMeals", image: "/assets/gshot-rice.png" },
 ];
 
 /* Function to select category and redirect */

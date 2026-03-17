@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Models\Product;
+use App\Http\Controllers\ProductController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -21,18 +21,12 @@ Route::controller(AuthController::class)->group(function () {
     });
 });
 
-Route::get('/products', function () {
-    $products = Product::all();
-
-    // Add full URL for each product image
-    $products->transform(function ($product) {
-        if ($product->image) {
-            $product->image = asset('storage/' . $product->image);
-        } else {
-            $product->image = asset('storage/images/default.png'); // fallback
-        }
-        return $product;
-    });
-
-    return response()->json($products);
+Route::middleware(['auth:sanctum', 'isAdmin'])->group(function () {
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{product}', [ProductController::class, 'update']);
+    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 });
+
+// Public routes
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
