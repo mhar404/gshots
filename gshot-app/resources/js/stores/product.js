@@ -51,6 +51,8 @@ export const useProductStore = defineStore("product", {
                 return res.data;
             } catch (err) {
                 console.error("Error creating product:", err);
+                console.error("STATUS:", err.response?.status);
+                console.error("DATA:", err.response?.data);
                 this.error = err;
                 throw err;
             } finally {
@@ -67,7 +69,7 @@ export const useProductStore = defineStore("product", {
                     `/products/${id}?_method=PUT`,
                     formData,
                 );
-                const index = this.products.findIndex((p) => p.id === id);
+                const index = this.products.findIndex((p) => p.id == id);
                 if (index !== -1) this.products[index] = res.data;
                 return res.data;
             } catch (err) {

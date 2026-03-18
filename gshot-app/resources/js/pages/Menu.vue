@@ -1,52 +1,18 @@
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
+
 import TopNav from "../components/TopNav.vue";
 import CartToast from "../components/CartToast.vue";
+import AuthModal from "../components/AuthModal.vue";
+import ProductCard from "../components/ProductCard.vue";
+
 import { useCartStore } from "../stores/cart";
 import { useAuthStore } from "../stores/auth";
 import { useProductStore } from "../stores/product";
-import AuthModal from "../components/AuthModal.vue";
 
-// Product
+/* ---------------------------- Product ---------------------------- */
 const productStore = useProductStore();
-
-//auth
-const auth = useAuthStore();
-const isAuthOpen = ref(false);
-const authMode = ref("login");
-console.log(auth.isAdmin);
-
-//cart
-const cart = useCartStore();
-const toastRef = ref(null);
-
-function confirmAddToCart() {
-    if (!auth.user) {
-        isAuthOpen.value = true;
-    } else {
-        cart.addToCart(selectedItem.value, quantity.value);
-        toastRef.value.showToast();
-        closeModal();
-    }
-
-    showModal.value = false;
-}
-
-/* Categories */
-const router = useRouter();
-const route = useRoute();
-const categories = ["All", "Drinks", "Burgers", "Pizzas", "RiceMeals"];
-
-// Category filter
-const selectedCategory = ref("All");
-const searchQuery = ref("");
-const sortOption = ref("default");
-
-function selectCategory(cat) {
-    selectedCategory.value = cat;
-    router.push({ name: "menu", params: { category: cat } });
-}
 
 const filteredProducts = computed(() => {
     let result = productStore.products;
@@ -77,6 +43,23 @@ const filteredProducts = computed(() => {
     return result;
 });
 
+const displayProducts = computed(() => {
+    if (auth.isAdmin) {
+        return [{ id: "add-card", isAddCard: true }, ...filteredProducts.value];
+    }
+    return filteredProducts.value;
+});
+
+/* ---------------------------- Auth ---------------------------- */
+const auth = useAuthStore();
+const isAuthOpen = ref(false);
+const authMode = ref("login");
+console.log(auth.isAdmin);
+
+/* ---------------------------- Cart ---------------------------- */
+const cart = useCartStore();
+const toastRef = ref(null);
+
 const showModal = ref(false);
 const selectedItem = ref(null);
 const quantity = ref(1);
@@ -91,12 +74,43 @@ function closeModal() {
     showModal.value = false;
 }
 
+function confirmAddToCart() {
+    if (!auth.user) {
+        isAuthOpen.value = true;
+    } else {
+        cart.addToCart(selectedItem.value, quantity.value);
+        toastRef.value.showToast();
+        closeModal();
+    }
+
+    showModal.value = false;
+}
+
+/* ---------------------------- Category Filter ---------------------------- */
+const router = useRouter();
+const route = useRoute();
+
+const categories = ["All", "Drinks", "Burgers", "Pizzas", "RiceMeals"];
+const selectedCategory = ref("All");
+const searchQuery = ref("");
+const sortOption = ref("default");
+
+function selectCategory(cat) {
+    selectedCategory.value = cat;
+    router.push({ name: "menu", params: { category: cat } });
+}
+
+/* ---------------------------- Admin Product Modal ---------------------------- */
 const isAdminModalOpen = ref(false);
 const adminSelectedItem = ref(null);
+const previewImage = ref(null);
+const selectedFile = ref(null);
 
 function openAdminModal(item) {
     adminSelectedItem.value = item;
     isAdminModalOpen.value = true;
+    selectedFile.value = null;
+    previewImage.value = null;
 }
 
 function closeAdminModal() {
@@ -104,21 +118,13 @@ function closeAdminModal() {
     adminSelectedItem.value = null;
 }
 
-const previewImage = ref(null);
-
 function handleImageUpload(e) {
     const file = e.target.files[0];
     if (file) {
+        selectedFile.value = file;
         previewImage.value = URL.createObjectURL(file);
     }
 }
-
-const displayProducts = computed(() => {
-    if (auth.isAdmin) {
-        return [{ id: "add-card", isAddCard: true }, ...filteredProducts.value];
-    }
-    return filteredProducts.value;
-});
 
 function openAddProductModal() {
     adminSelectedItem.value = {
@@ -130,6 +136,42 @@ function openAddProductModal() {
     };
     previewImage.value = null;
     isAdminModalOpen.value = true;
+}
+
+const saveAdminEdit = async () => {
+    const formData = new FormData();
+    console.log([...formData.entries()]);
+
+    try {
+        formData.append("name", adminSelectedItem.value.name);
+        formData.append("description", adminSelectedItem.value.description);
+        formData.append("price", adminSelectedItem.value.price);
+        formData.append("category", adminSelectedItem.value.category);
+
+        if (selectedFile.value) {
+            formData.append("image", selectedFile.value);
+        }
+
+        if (adminSelectedItem.value.id) {
+            await productStore.updateProduct(
+                adminSelectedItem.value.id,
+                formData,
+            );
+        } else {
+            await productStore.createProduct(formData);
+        }
+
+        closeAdminModal();
+    } catch (err) {
+        console.error("Save failed:", err);
+    }
+};
+
+function confirmDelete() {
+    if (confirm("Are you sure you want to delete this product?")) {
+        productStore.deleteProduct(adminSelectedItem.value.id);
+        closeAdminModal();
+    }
 }
 
 watch(
@@ -228,67 +270,53 @@ onMounted(async () => {
             <div
                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-10"
             >
-                <div
-                    v-for="item in displayProducts"
-                    :key="item.id"
-                    class="bg-white/10 rounded-xl overflow-hidden transition duration-300 hover:scale-105 flex flex-col"
-                >
-                    <!-- ✅ ADD PRODUCT CARD -->
+                <template v-if="productStore.loading">
                     <div
-                        v-if="item.isAddCard"
-                        @click="openAddProductModal"
-                        class="flex flex-col items-center justify-center h-full cursor-pointer border-2 border-dashed border-white/30 hover:border-red-500 text-white rounded-xl"
+                        v-for="n in 8"
+                        :key="n"
+                        class="bg-white/10 rounded-xl overflow-hidden flex flex-col h-full animate-pulse border-white/20"
                     >
-                        <i class="text-2xl mb-2 pi pi-plus"></i>
-                        <p class="text-sm sm:text-base font-semibold">
-                            Add Product
-                        </p>
-                    </div>
-
-                    <!-- ✅ NORMAL PRODUCT CARD -->
-                    <template v-else>
-                        <div class="overflow-hidden relative">
-                            <img
-                                :src="item.image"
-                                :alt="item.name"
-                                class="w-full h-44 sm:h-52 md:h-56 object-cover transition duration-500 hover:scale-110"
-                            />
-                            <button
-                                v-if="auth.isAdmin"
-                                @click="openAdminModal(item)"
-                                class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 text-xl cursor-pointer"
-                            >
-                                ⋮
-                            </button>
-                        </div>
-
+                        <!-- Image Placeholder -->
                         <div
-                            class="p-4 sm:p-5 md:p-6 text-gray-200 flex flex-col grow"
-                        >
+                            class="w-full h-40 sm:h-44 md:h-52 lg:h-56 bg-black/50"
+                        ></div>
+
+                        <!-- Content Placeholder -->
+                        <div class="p-3 sm:p-4 md:p-5 flex flex-col grow gap-2">
+                            <!-- Name -->
                             <div
-                                class="flex justify-between items-start gap-3 mb-2"
-                            >
-                                <h3
-                                    class="text-base sm:text-lg md:text-xl font-semibold"
-                                >
-                                    {{ item.name }}
-                                </h3>
+                                class="h-4 sm:h-5 md:h-6 bg-black/50 rounded w-3/4"
+                            ></div>
+                            <div
+                                class="h-4 sm:h-5 md:h-6 bg-black/50 rounded w-1/2"
+                            ></div>
 
-                                <span class="text-red-400 font-bold">
-                                    ₱{{ item.price }}
-                                </span>
-                            </div>
+                            <!-- Price -->
+                            <div
+                                class="h-4 w-1/3 bg-black/50 rounded mt-2"
+                            ></div>
 
-                            <button
-                                @click="addToCart(item)"
-                                class="mt-auto flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium cursor-pointer"
-                            >
-                                <i class="pi pi-shopping-cart text-lg"></i>
-                                Add to Cart
-                            </button>
+                            <!-- Add to Cart Button Placeholder -->
+                            <div
+                                class="mt-auto h-9 sm:h-10 rounded-full bg-black/50 w-full"
+                            ></div>
                         </div>
-                    </template>
-                </div>
+                    </div>
+                </template>
+
+                <!-- Actual Product Cards -->
+                <template v-else>
+                    <ProductCard
+                        v-for="item in displayProducts"
+                        :key="item.id"
+                        :product="item"
+                        :is-add-card="item.isAddCard"
+                        :is-admin="auth.isAdmin"
+                        @add-to-cart="addToCart"
+                        @admin-options="openAdminModal"
+                        @add-product="openAddProductModal"
+                    />
+                </template>
             </div>
         </div>
     </section>
@@ -402,7 +430,7 @@ onMounted(async () => {
                 <img
                     :src="previewImage || adminSelectedItem.image"
                     alt="Product Image"
-                    class="w-full h-40 sm:h-48 md:h-56 object-cover rounded-xl mb-2 border border-white/20"
+                    class="w-full h-40 sm:h-48 md:h-56 object-cover rounded-xl mb-2 border border-white/20 text-gray-300 text-center"
                 />
 
                 <input
@@ -424,6 +452,30 @@ onMounted(async () => {
                         class="w-full mb-3 sm:mb-4 px-3 py-2 rounded bg-white/10 text-white focus:outline-none text-sm sm:text-base"
                     />
 
+                    <div v-if="!adminSelectedItem.id">
+                        <label class="text-gray-300 text-sm sm:text-base"
+                            >Category</label
+                        >
+                        <select
+                            v-model="adminSelectedItem.category"
+                            class="w-full mb-3 px-3 py-2 rounded bg-black/40 text-white border border-white/20"
+                        >
+                            <option
+                                value=""
+                                disabled
+                                class="bg-black text-white"
+                            >
+                                Select Category
+                            </option>
+                            <option class="bg-black text-white">Drinks</option>
+                            <option class="bg-black text-white">Burgers</option>
+                            <option class="bg-black text-white">Pizzas</option>
+                            <option class="bg-black text-white">
+                                RiceMeals
+                            </option>
+                        </select>
+                    </div>
+
                     <label class="text-gray-300 text-sm sm:text-base"
                         >Description</label
                     >
@@ -431,7 +483,6 @@ onMounted(async () => {
                         v-model="adminSelectedItem.description"
                         rows="4"
                         class="w-full mb-3 sm:mb-4 px-3 py-2 rounded bg-white/10 text-white focus:outline-none resize-none text-sm sm:text-base"
-                        placeholder="Enter product description..."
                     ></textarea>
 
                     <label class="text-gray-300 text-sm sm:text-base"
@@ -444,12 +495,12 @@ onMounted(async () => {
                     />
                 </div>
 
-                <div class="flex justify-between items-center mt-4">
+                <div class="flex gap-3 mt-4">
                     <!-- Delete -->
                     <button
                         v-if="adminSelectedItem.id"
                         @click="confirmDelete"
-                        class="flex px-5 py-2.5 items-center justify-center rounded-full bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition cursor-pointer"
+                        class="flex-1 flex items-center justify-center px-5 py-2.5 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition cursor-pointer"
                     >
                         <i class="pi pi-trash text-lg"></i>
                     </button>
@@ -457,7 +508,7 @@ onMounted(async () => {
                     <!-- Save -->
                     <button
                         @click="saveAdminEdit"
-                        class="px-5 py-2.5 rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold transition cursor-pointer text-sm sm:text-base"
+                        class="flex-1 flex items-center justify-center px-5 py-2.5 rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold transition cursor-pointer text-sm sm:text-base"
                     >
                         {{
                             adminSelectedItem.id

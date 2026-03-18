@@ -31,21 +31,25 @@ class ProductController extends Controller
     // Store new product
     public function store(Request $request)
     {
+        if (!$request->user() || $request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:2048', // optional image
+            'image' => 'nullable|image',
         ]);
 
-        // Handle image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('images', 'public');
             $data['image'] = $path;
         }
 
         $product = Product::create($data);
+        $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
         return response()->json($product, 201);
     }
@@ -53,6 +57,10 @@ class ProductController extends Controller
     // Update product
     public function update(Request $request, Product $product)
     {
+         if (!$request->user() || $request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -71,6 +79,8 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+
+        $product->image = $product->image ? asset('storage/' . $product->image) : null;
 
         return response()->json($product);
     }
