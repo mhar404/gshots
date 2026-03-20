@@ -5,18 +5,17 @@ import AuthModal from "./AuthModal.vue";
 import CartModal from "./CartModal.vue";
 import AuthToast from "./AuthToast.vue";
 import { useCartStore } from "@/stores/cart";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const toastRef = ref(null);
-
-const signOut = () => {
-    toastRef.value.showToast("Logged out successfully", "logout");
-};
-
 const cart = useCartStore();
 const isCartOpen = ref(false);
 
 const openCart = () => {
-    isCartOpen.value = true;
+    if (auth.user) {
+        isCartOpen.value = true;
+    }
 };
 
 const currentTime = ref("");
@@ -42,6 +41,13 @@ const auth = useAuthStore();
 const isAuthOpen = ref(false);
 const authMode = ref("login");
 
+const signOut = async () => {
+    toastRef.value.showToast("Logged out successfully", "logout");
+    cart.items = [];
+    await auth.logout();
+    router.push({ name: "home" });
+};
+
 const openAuth = (mode = "login") => {
     authMode.value = mode;
     isAuthOpen.value = true;
@@ -57,10 +63,15 @@ const handleScroll = () => {
     isScrolled.value = window.scrollY > 50;
 };
 
-onMounted(() => {
-    if (localStorage.getItem("token")) {
-        auth.getUser();
+onMounted(async () => {
+    try {
+        if (localStorage.getItem("token")) {
+            await auth.getUser();
+        }
+    } catch (err) {
+        console.error("Failed to get user:", err);
     }
+
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("click", handleClickOutside);
     updateTime();
@@ -149,7 +160,7 @@ onUnmounted(() => {
                     ></i>
 
                     <span
-                        v-if="cart.cartCount > 0"
+                        v-if="cart.cartCount > 0 && auth.user"
                         class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full"
                     >
                         {{ cart.cartCount }}
@@ -199,7 +210,6 @@ onUnmounted(() => {
                             <!-- Logout -->
                             <button
                                 @click="
-                                    auth.logout();
                                     isDropdownOpen = false;
                                     signOut();
                                 "

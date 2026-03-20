@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import api from "@/lib/axios";
+import { useCartStore } from "@/stores/cart";
 
 export const useAuthStore = defineStore("auth", {
     state: () => ({
@@ -17,24 +18,24 @@ export const useAuthStore = defineStore("auth", {
                 const res = await api.post(`/${apiRoute}`, formData);
                 this.user = res.data.user;
                 localStorage.setItem("token", res.data.token);
-                console.log(res.data);
                 this.errors = {};
+
+                const cartStore = useCartStore();
+                await cartStore.fetchCart();
             } catch (error) {
                 this.errors = error.response?.data?.errors || {};
-                console.log(error.response.data);
+                console.log(error.response?.data);
             }
         },
 
         async logout() {
             try {
-                const res = await api.post("/logout");
-                console.log(res.data);
+                await api.post("/logout");
             } catch (error) {
                 console.error(error);
             }
 
             this.user = null;
-            this.token = null;
             this.errors = {};
             localStorage.removeItem("token");
         },
@@ -43,10 +44,13 @@ export const useAuthStore = defineStore("auth", {
             try {
                 const res = await api.get("/user");
                 this.user = res.data;
-                console.log(res.data);
+
+                if (localStorage.getItem("token")) {
+                    const cartStore = useCartStore();
+                    await cartStore.fetchCart();
+                }
             } catch (error) {
                 this.user = null;
-                this.token = null;
                 localStorage.removeItem("token");
                 console.error(error);
             }
