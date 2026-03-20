@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import api from "@/lib/axios";
 
 export const useCartStore = defineStore("cart", {
     state: () => ({
@@ -11,54 +12,66 @@ export const useCartStore = defineStore("cart", {
 
         cartTotal: (state) =>
             state.items.reduce(
-                (total, item) => total + item.price * item.quantity,
+                (total, item) => total + item.product.price * item.quantity,
                 0,
             ),
     },
 
     actions: {
-        addToCart(product, quantity = 1) {
-            const existing = this.items.find(
-                (item) => item.product_id === product.id,
-            );
+        // Fetch cart from backend
+        async fetchCart() {
+            try {
+                const res = await api.get("/cart");
+                this.items = Array.isArray(res.data) ? res.data : [];
+            } catch (err) {
+                console.error("Fetch cart failed:", err);
+                this.items = [];
+            }
+        },
 
-            if (existing) {
-                existing.quantity += quantity;
-            } else {
-                this.items.push({
+        // Add product to cart in backend
+        async addToCart(product, quantity = 1) {
+            try {
+                const res = await api.post("/cart", {
                     product_id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image,
-                    quantity: quantity,
+                    quantity,
                 });
+                this.items = res.data; // backend returns updated cart
+            } catch (err) {
+                console.error("Add to cart failed:", err);
             }
         },
 
-        removeItem(product_id) {
-            this.items = this.items.filter(
-                (item) => item.product_id !== product_id,
-            );
-        },
-
-        updateQuantity(product_id, quantity) {
-            const item = this.items.find(
-                (item) => item.product_id === product_id,
-            );
-
-            if (!item) return;
-
-            // remove item if quantity becomes 0 or less
-            if (quantity <= 0) {
-                this.removeItem(product_id);
-                return;
+        // Update quantity
+        async updateQuantity(product_id, quantity) {
+            try {
+                const res = await api.put(`/cart/${product_id}`, {
+                    quantity,
+                });
+                this.items = res.data; // backend returns updated cart
+            } catch (err) {
+                console.error("Update quantity failed:", err);
             }
-
-            item.quantity = quantity;
         },
 
-        clearCart() {
-            this.items = [];
+        // Remove item
+        async removeItem(product_id) {
+            try {
+                const res = await api.delete(`/cart/${product_id}`);
+                this.items = res.data; // backend returns updated cart
+            } catch (err) {
+                console.error("Remove item failed:", err);
+            }
+        },
+
+        // Clear entire cart
+        async clearCart() {
+            try {
+                await api.delete("/cart");
+                this.items = [];
+            } catch (err) {
+                console.error("Clear cart failed:", err);
+            }
         },
     },
 });

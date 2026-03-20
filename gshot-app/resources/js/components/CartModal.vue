@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from "vue";
 import { useCartStore } from "@/stores/cart";
 
 const cart = useCartStore();
@@ -12,6 +13,26 @@ const emit = defineEmits(["update:modelValue"]);
 const closeModal = () => {
     emit("update:modelValue", false);
 };
+
+const handleCheckout = async () => {
+    console.log(
+        "Products in cart:",
+        cart.items.map((item) => item.product.name),
+    );
+    console.log(
+        "Quantity:",
+        cart.items.map((item) => item.quantity),
+    );
+    console.log("Total price:", cart.cartTotal);
+    // await cart.clearCart();
+    closeModal();
+};
+
+onMounted(async () => {
+    if (localStorage.getItem("token")) {
+        await cart.fetchCart(); // now authorized
+    }
+});
 </script>
 
 <template>
@@ -41,8 +62,10 @@ const closeModal = () => {
                     class="flex justify-between items-center border-b border-white/10 pb-2"
                 >
                     <div>
-                        <p class="font-semibold">{{ item.name }}</p>
-                        <p class="text-sm text-gray-400">₱{{ item.price }}</p>
+                        <p class="font-semibold">{{ item.product.name }}</p>
+                        <p class="text-sm text-gray-400">
+                            ₱{{ item.product.price }}
+                        </p>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -94,7 +117,8 @@ const closeModal = () => {
             </div>
 
             <button
-                class="w-full mt-6 bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition"
+                @click="handleCheckout"
+                class="w-full mt-6 bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition cursor-pointer"
             >
                 Checkout
             </button>
