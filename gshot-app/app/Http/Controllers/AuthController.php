@@ -39,7 +39,7 @@ class AuthController extends Controller
                 'errors'  => [
                     'email' => ['Invalid Credentials.']
                 ]
-            ], 404); // 404 Not Found
+            ], 404); 
         }
 
         if (! Hash::check($credentials['password'], $user->password)) {
@@ -49,7 +49,7 @@ class AuthController extends Controller
                 'errors'  => [
                     'password' => ['The password you entered is incorrect.']
                 ]
-            ], 401); // 401 Unauthorized
+            ], 401); 
         }
 
         $user->tokens()->delete();
