@@ -31,10 +31,6 @@ class ProductController extends Controller
     // Store new product
     public function store(Request $request)
     {
-        if (!$request->user() || $request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -57,9 +53,6 @@ class ProductController extends Controller
     // Update product
     public function update(Request $request, Product $product)
     {
-         if (!$request->user() || $request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
 
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -88,6 +81,7 @@ class ProductController extends Controller
     // Delete product
     public function destroy(Product $product)
     {
+        
         if ($product->image && Storage::disk('public')->exists($product->image)) {
             Storage::disk('public')->delete($product->image);
         }

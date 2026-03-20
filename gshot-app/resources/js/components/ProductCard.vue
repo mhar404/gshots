@@ -1,6 +1,4 @@
 <script setup>
-import { defineProps, defineEmits } from "vue";
-
 const props = defineProps({
     product: { type: Object, default: null },
     isAddCard: { type: Boolean, default: false },
