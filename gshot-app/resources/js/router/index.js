@@ -28,6 +28,11 @@ const router = createRouter({
             name: "test",
             component: () => import("@/pages/Test.vue"),
         },
+        {
+            path: "/checkout",
+            name: "checkout",
+            component: () => import("@/pages/Checkout.vue"),
+        },
     ],
     scrollBehavior(to, from, savedPosition) {
         // If navigating back/forward, use saved scroll position
