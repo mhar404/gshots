@@ -64,6 +64,11 @@ const handleScroll = () => {
 };
 
 onMounted(async () => {
+    updateTime();
+    timer = setInterval(updateTime, 1000);
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("click", handleClickOutside);
+
     try {
         if (localStorage.getItem("token")) {
             await auth.getUser();
@@ -71,11 +76,6 @@ onMounted(async () => {
     } catch (err) {
         console.error("Failed to get user:", err);
     }
-
-    window.addEventListener("scroll", handleScroll);
-    window.addEventListener("click", handleClickOutside);
-    updateTime();
-    timer = setInterval(updateTime, 1000);
 });
 
 onUnmounted(() => {
@@ -187,7 +187,7 @@ onUnmounted(() => {
                     <!-- DROPDOWN -->
                     <div
                         v-if="isDropdownOpen"
-                        class="absolute right-0 mt-3 w-56 bg-black/80 border border-white/20 rounded-xl shadow-xl overflow-hidden"
+                        class="absolute right-0 mt-3 w-56 bg-black border border-white/20 rounded-xl shadow-xl overflow-hidden"
                     >
                         <!-- USER INFO HEADER -->
                         <div class="px-4 py-3">
@@ -245,7 +245,7 @@ onUnmounted(() => {
         <!-- Mobile Menu -->
         <div
             v-show="isOpen"
-            class="md:hidden text-white px-6 py-6 space-y-4 text-center flex flex-col"
+            class="md:hidden text-white px-6 pb-6 space-y-4 text-center flex flex-col"
         >
             <RouterLink
                 :to="{ name: 'home' }"
@@ -276,7 +276,7 @@ onUnmounted(() => {
 
             <!-- Mobile Actions -->
             <div class="pt-4 border-t border-white/20 space-y-3">
-                <!-- <button
+                <button
                     @click="openCart()"
                     class="relative hover:text-red-600 transition cursor-pointer"
                 >
@@ -286,12 +286,12 @@ onUnmounted(() => {
                     ></i>
 
                     <span
-                        v-if="cartCount > 0"
+                        v-if="cart.cartCount > 0 && auth.user"
                         class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full"
                     >
-                        {{ cartCount }}
+                        {{ cart.cartCount }}
                     </span>
-                </button> -->
+                </button>
                 <button
                     @click="isSignInOpen = true"
                     class="w-full flex justify-center gap-2 items-center hover:text-red-600"

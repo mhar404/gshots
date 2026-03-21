@@ -13,16 +13,20 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
+    
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
+        $token = $user->createToken('api-token')->plainTextToken;
+
         return response()->json([
+            'success' => true,
             'message' => 'User registered successfully!',
             'user'    => $user,
+            'token'   => $token,
         ], 201);
     }
 
@@ -39,7 +43,7 @@ class AuthController extends Controller
                 'errors'  => [
                     'email' => ['Invalid Credentials.']
                 ]
-            ], 404); // 404 Not Found
+            ], 404); 
         }
 
         if (! Hash::check($credentials['password'], $user->password)) {
@@ -49,7 +53,7 @@ class AuthController extends Controller
                 'errors'  => [
                     'password' => ['The password you entered is incorrect.']
                 ]
-            ], 401); // 401 Unauthorized
+            ], 401); 
         }
 
         $user->tokens()->delete();
