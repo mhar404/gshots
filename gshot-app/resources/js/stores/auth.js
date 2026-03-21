@@ -19,6 +19,7 @@ export const useAuthStore = defineStore("auth", {
                 this.user = res.data.user;
                 localStorage.setItem("token", res.data.token);
                 this.errors = {};
+                console.log(res.data);
 
                 const cartStore = useCartStore();
                 await cartStore.fetchCart();

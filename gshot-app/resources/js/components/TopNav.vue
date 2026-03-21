@@ -66,6 +66,9 @@ const handleScroll = () => {
 onMounted(async () => {
     updateTime();
     timer = setInterval(updateTime, 1000);
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("click", handleClickOutside);
+
     try {
         if (localStorage.getItem("token")) {
             await auth.getUser();
@@ -73,9 +76,6 @@ onMounted(async () => {
     } catch (err) {
         console.error("Failed to get user:", err);
     }
-
-    window.addEventListener("scroll", handleScroll);
-    window.addEventListener("click", handleClickOutside);
 });
 
 onUnmounted(() => {
@@ -187,7 +187,7 @@ onUnmounted(() => {
                     <!-- DROPDOWN -->
                     <div
                         v-if="isDropdownOpen"
-                        class="absolute right-0 mt-3 w-56 bg-black/40 border border-white/20 rounded-xl shadow-xl overflow-hidden"
+                        class="absolute right-0 mt-3 w-56 bg-black border border-white/20 rounded-xl shadow-xl overflow-hidden"
                     >
                         <!-- USER INFO HEADER -->
                         <div class="px-4 py-3">

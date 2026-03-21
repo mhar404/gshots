@@ -1,6 +1,9 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useCartStore } from "@/stores/cart";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const cart = useCartStore();
 
@@ -15,17 +18,19 @@ const closeModal = () => {
 };
 
 const handleCheckout = async () => {
-    console.log(
-        "Products in cart:",
-        cart.items.map((item) => item.product.name),
-    );
-    console.log(
-        "Quantity:",
-        cart.items.map((item) => item.quantity),
-    );
-    console.log("Total price:", cart.cartTotal);
-    // await cart.clearCart();
-    closeModal();
+    router.push({ name: "checkout" });
+    // checkoutModalOpen.value = true;
+    // console.log(
+    //     "Products in cart:",
+    //     cart.items.map((item) => item.product.name),
+    // );
+    // console.log(
+    //     "Quantity:",
+    //     cart.items.map((item) => item.quantity),
+    // );
+    // console.log("Total price:", cart.cartTotal);
+    // // await cart.clearCart();
+    // closeModal();
 };
 
 onMounted(async () => {
@@ -38,10 +43,10 @@ onMounted(async () => {
 <template>
     <div
         v-if="modelValue && cart.items.length > 0"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
     >
         <div
-            class="bg-black/20 backdrop-blur-sm border border-white/20 rounded-xl w-full max-w-lg p-6 text-white relative"
+            class="bg-black/20 backdrop-blur-sm border border-white/20 rounded-xl w-full max-w-lg p-6 text-white relative flex flex-col"
         >
             <!-- Close -->
             <button
@@ -52,14 +57,14 @@ onMounted(async () => {
             </button>
 
             <!-- Title -->
-            <h2 class="text-2xl font-bold mb-6">Your Cart</h2>
+            <h2 class="text-2xl font-bold mb-4">Your Cart</h2>
 
-            <!-- CART ITEMS -->
-            <div class="space-y-4">
+            <!-- CART ITEMS (Scrollable) -->
+            <div class="space-y-4 overflow-y-auto max-h-96">
                 <div
                     v-for="item in cart.items"
                     :key="item.product_id"
-                    class="flex justify-between items-center border-b border-white/10 pb-2"
+                    class="flex justify-between items-center border-b border-white/10 p-2"
                 >
                     <div>
                         <p class="font-semibold">{{ item.product.name }}</p>
@@ -110,18 +115,19 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <!-- TOTAL + CHECKOUT -->
-            <div class="flex justify-between mt-6 text-lg font-bold">
-                <span>Total</span>
-                <span>₱{{ cart.cartTotal }}</span>
+            <!-- TOTAL + CHECKOUT (Fixed at bottom) -->
+            <div class="mt-4 border-t border-white/20 pt-3 flex flex-col gap-3">
+                <div class="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span>₱{{ cart.cartTotal }}</span>
+                </div>
+                <button
+                    @click="handleCheckout"
+                    class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition cursor-pointer"
+                >
+                    Checkout
+                </button>
             </div>
-
-            <button
-                @click="handleCheckout"
-                class="w-full mt-6 bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition cursor-pointer"
-            >
-                Checkout
-            </button>
         </div>
     </div>
 </template>
