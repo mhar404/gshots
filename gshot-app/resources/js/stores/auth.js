@@ -18,6 +18,7 @@ export const useAuthStore = defineStore("auth", {
                 const res = await api.post(`/${apiRoute}`, formData);
                 this.user = res.data.user;
                 localStorage.setItem("token", res.data.token);
+                localStorage.setItem("user", JSON.stringify(res.data.user));
                 this.errors = {};
                 console.log(res.data);
 
@@ -39,6 +40,7 @@ export const useAuthStore = defineStore("auth", {
             this.user = null;
             this.errors = {};
             localStorage.removeItem("token");
+            localStorage.removeItem("user");
         },
 
         async getUser() {
@@ -55,6 +57,11 @@ export const useAuthStore = defineStore("auth", {
                 localStorage.removeItem("token");
                 console.error(error);
             }
+        },
+
+        restoreUser() {
+            const user = localStorage.getItem("user");
+            if (user) this.user = JSON.parse(user);
         },
     },
 });

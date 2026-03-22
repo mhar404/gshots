@@ -31,14 +31,21 @@ const getLocation = () => {
 
 // Submit
 const confirmCheckout = () => {
-    console.log({
+    const items = cart.items.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+    }));
+
+    const payload = {
         name: userName.value,
         phone: userPhone.value,
-        address: userAddress.value,
         payment: paymentMethod.value,
-        items: cart.items,
+        address: userAddress.value,
+        items: items,
         total: cart.cartTotal,
-    });
+    };
+
+    console.log(payload);
 };
 </script>
 
