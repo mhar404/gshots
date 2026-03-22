@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -39,3 +40,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/{product_id}', [CartController::class, 'destroy']);
     Route::delete('/cart', [CartController::class, 'clear']);
 });
+
+Route::post('/checkout', [OrderController::class, 'store']);
