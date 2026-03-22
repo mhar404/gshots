@@ -33,7 +33,7 @@ const filteredProducts = computed(() => {
         );
     }
 
-    // Sort by price
+    // Sort by prices
     if (sortOption.value === "low-high") {
         result = result.slice().sort((a, b) => a.price - b.price);
     } else if (sortOption.value === "high-low") {
